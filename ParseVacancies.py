@@ -5,43 +5,41 @@ import time
 import shutil
 
 
-def parse_vacancies() -> None:
+def parse_vacancies(grade_occupation: str) -> None:
     """
-    Парсит сайт с вакансиями
+    Парсит сайт с вакансиями.
+    @param grade_occupation:  желаемая профессия
     """
-    occupation = input('Введите желаемую профессию,например, junior аналитик данных: ')
-    get_pages(occupation)
+    get_pages(grade_occupation)
     get_vacancies()
 
 
-def get_page(occupation: str, page: int = 0) -> str:
+def get_page(grade_occupation: str, page: int = 0) -> str:
     """
     Метод для получения страницы со списком вакансий.
-    Аргументы:
-        page - Индекс страницы, начинается с 0. Значение по умолчанию 0, т.е. первая страница
-
+    @param grade_occupation:  желаемая профессия
+    @param  page: индекс страницы, начинается с 0. Значение по умолчанию 0, т.е. первая страница
     """
 
     # Справочник для параметров GET-запроса
     params = {
-        'text': f'NAME:{occupation}',  # Текст фильтра. В имени должно быть слово "Аналитик"
+        'text': f'NAME:{grade_occupation}',  # Текст фильтра. В имени должно быть слово "Аналитик"
         'area': 1,  # Поиск ощуществляется по вакансиям города Москва
         'page': page,  # Индекс страницы поиска на HH
         'per_page': 100  # Кол-во вакансий на 1 странице
     }
 
-    req = requests.get('https://api.hh.ru/vacancies', params)  # Посылаем запрос к API
-    data = req.content.decode()  # Декодируем его ответ, чтобы Кириллица отображалась корректно
+    req = requests.get('https://api.hh.ru/vacancies', params)
+    data = req.content.decode()  # Декодируем, чтобы Кириллица отображалась корректно
     req.close()
     return data
 
 
-def get_pages(occupation: str) -> None:
+def get_pages(grade_occupation: str) -> None:
     """
         Функция считывает и сохраняет в json поученные страницы с вакансиями
-        Аргументы:  желаемая профессия
+        @param grade_occupation:  желаемая профессия
     """
-    print('Начинаем поиск...')
 
     if os.path.exists('./docs'):
         shutil.rmtree('./docs')  # удаляет папку вместе содержимым, если папка сушествует и создаём пустую
@@ -51,7 +49,7 @@ def get_pages(occupation: str) -> None:
     for page in range(0, 10):
 
         # Преобразуем текст ответа запроса в справочник Python
-        js_obj = json.loads(get_page(occupation, page))
+        js_obj = json.loads(get_page(grade_occupation, page))
 
         # Определяем количество файлов в папке для сохранения документа с ответом запроса
         # Полученное значение используем для формирования имени документа
@@ -67,7 +65,7 @@ def get_pages(occupation: str) -> None:
         if (js_obj['pages'] - page) <= 1:
             break
 
-        # Задержка,  чтобы не нагружать сервисы hh
+        # Задержка, чтобы не нагружать сервисы hh
         time.sleep(0.25)
 
 
@@ -80,8 +78,6 @@ def get_vacancies() -> None:
     if os.path.exists('./vacancies'):
         shutil.rmtree('./vacancies')  # удаляет папку вместе содержимым, если папка сушествует и создаём пустую
     os.makedirs('./vacancies')
-
-    print(f"Собираем данные о вакансиях... (Подождите примерно {int(40 / 60 * len(os.listdir('./docs')))} минут)")
 
     # Получаем перечень ранее созданных файлов со списком вакансий и проходимся по нему в цикле
     for fl in os.listdir('./docs'):
@@ -109,5 +105,3 @@ def get_vacancies() -> None:
             f.close()
 
             time.sleep(0.25)
-
-    print('Вакансии собраны')

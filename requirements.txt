@@ -2,3 +2,5 @@ ipython~=7.24.1
 requests~=2.25.1
 numpy~=1.20.3
 pandas~=1.2.4
+selenium~=3.141.0
+translators~=4.7.20
